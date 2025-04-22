@@ -6,7 +6,7 @@ import boto3
 
 def lambda_handler(event, context):
     account_id = boto3.client('sts').get_caller_identity()['Account']
-    config_role = 'devopsEcs'
+    config_role = 'guardduty_security_config-role-jpyjbsz5'
     config_bucket = 'guardduty-global-security-config-bucket'
 
     ec2 = boto3.client('ec2')
