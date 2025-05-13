@@ -1,15 +1,28 @@
 #!/bin/bash
 
-# GitHub setup script with parameterization, error handling, and logging
+# GitHub setup script with prompts, error handling, and logging
 # Requires GitHub CLI (gh) and jq
 
 # Parameters
-ORG_NAME=$1
-GITHUB_TOKEN=$2
 LOG_FILE="github_setup.log"
 REPOS=(BE FE QA_BE QA_FE)
 BRANCHES=(dev systest uat prod)
 DEFAULT_BRANCH="dev"
+
+# Prompt for Organization Name
+if [ -z "$1" ]; then
+  read -p "Enter GitHub Organization Name: " ORG_NAME
+else
+  ORG_NAME=$1
+fi
+
+# Prompt for GitHub Token
+if [ -z "$2" ]; then
+  read -sp "Enter GitHub Token: " GITHUB_TOKEN
+  echo
+else
+  GITHUB_TOKEN=$2
+fi
 
 # Authenticate with GitHub
 export GH_TOKEN=$GITHUB_TOKEN
