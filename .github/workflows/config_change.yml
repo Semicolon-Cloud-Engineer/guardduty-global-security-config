@@ -1,0 +1,17 @@
+name: Config Change Detector
+
+on: [push]
+
+jobs:
+  detect_changes:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Make script executable
+        run: chmod +x config_change_detector.sh
+
+      - name: Run Config Change Detector
+        run: ./config_change_detector.sh
