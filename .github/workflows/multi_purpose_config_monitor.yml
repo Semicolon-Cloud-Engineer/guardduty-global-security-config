@@ -30,3 +30,23 @@ jobs:
         run: |
           pip install watchdog python-dotenv
           nohup python3 config_change_monitor.py > config_monitor.log 2>&1 &
+          sleep 30  # Allow time for the script to run
+
+      - name: Upload Log
+        uses: actions/upload-artifact@v3
+        with:
+          name: config-monitor-log
+          path: config_monitor.log
+
+      - name: Check for Errors and Send Lark Alert
+        run: |
+          # Check for errors in the log
+          if grep -q "ERROR" config_monitor.log; then
+            # Extract the last 10 lines of the log to send to Lark
+            LOG_CONTENT=$(tail -n 10 config_monitor.log | sed 's/"/\\"/g' | tr '\n' '\\n')
+            
+            # Send log content to Lark
+            curl -X POST -H 'Content-Type: application/json' \
+              --data "{\"msg_type\": \"text\", \"content\": {\"text\": \"⚠️ *Config Monitor Alert:* ERROR detected in config files. Last 10 log lines:\\n${LOG_CONTENT}\"}}" \
+              ${{ secrets.LARK_WEBHOOK_URL }}
+          fi
