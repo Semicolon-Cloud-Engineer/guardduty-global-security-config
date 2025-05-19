@@ -1,0 +1,32 @@
+name: Config Monitor
+
+on:
+  push:
+    paths:
+      - '**/*.env'
+      - '**/*.properties'
+      - '**/*.yml'
+      - '**/*.yaml'
+      - '**/*.json'
+      - '**/settings.py'
+      - '**/*.tfvars'
+      - '**/*.rb'
+      - '**/*.sh'
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Run Config Monitor
+        run: |
+          pip install watchdog python-dotenv
+          nohup python3 config_change_monitor.py > config_monitor.log 2>&1 &
