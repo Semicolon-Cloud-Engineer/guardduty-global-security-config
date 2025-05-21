@@ -136,3 +136,26 @@ CI/CD for microservices deployment (container builds → push → deploy via Hel
 Terraform/Ansible validation steps in GitHub Actions
 
 Auto-rollback on failed deployments
+
+
+project-root/
+├── terraform/
+│   ├── main.tf                   # OCI resources (VCN, Compute, etc.)
+│   ├── variables.tf              # Input variables
+│   ├── outputs.tf                # Outputs (e.g., public IPs)
+│   └── provider.tf               # OCI provider config
+├── ansible/
+│   ├── inventory/
+│   │   └── hosts.ini             # Hosts from Terraform output
+│   ├── playbooks/
+│   │   ├── init.yml              # Base system updates
+│   │   ├── docker.yml            # Docker installation
+│   │   ├── kubeadm-install.yml   # Kubernetes install and setup
+│   │   └── deploy-microservices.yml # Microservices deployment
+│   └── ansible.cfg               # Config file for Ansible behavior
+├── .github/
+│   └── workflows/
+│       ├── terraform.yml         # GitHub Action to deploy infra
+│       └── ansible.yml           # GitHub Action to run playbooks
+├── README.md
+└── .gitignore
