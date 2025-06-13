@@ -13,5 +13,59 @@ jobs:
       - name: Make script executable
         run: chmod +x config_changes.sh
 
-      - name: Run Config Change Detector
-        run: ./config_changes.sh
+              
+      - name: Download and compare env files from S3
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          S3_BUCKET: semicolon-delivery
+          S3_BASE_KEY: nkwadoma/backend
+          ENV_NAMES: "systest"
+        run: |
+          set -e
+          echo "AWS_REGION = $AWS_REGION"
+      
+          mkdir -p tmp
+          ENV_FILE_PATH="./tmp/nkwadoma-systest.env"
+          aws s3 cp s3://$S3_BUCKET/$S3_BASE_KEY/systest/nkwadoma.env $ENV_FILE_PATH --region $AWS_REGION
+      
+          compare_envs() {
+            file1=$1
+            file2=$2
+            label1=$3
+            label2=$4
+          
+            echo "Comparing $label1 with $label2..."
+          
+            active1=""
+            active2=""
+          
+            while IFS='=' read -r key1 val1; do
+              # Skip empty or commented lines
+              [[ -z "$key1" || "$key1" =~ ^# ]] && continue
+          
+              val2=$(grep -E "^$key1=" "$file2" | cut -d'=' -f2-)
+          
+              if [[ "$key1" == "spring.profiles.active" ]]; then
+                active1="$val1"
+                active2="$val2"
+                echo "Notice: Skipping comparison for $key1"
+                continue
+              fi
+          
+              if [ "$val1" != "$val2" ]; then
+                echo "::error:: Mismatch for $key1 in $label1 vs $label2"
+                echo "  $label1: $val1"
+                echo "  $label2: $val2"
+                exit 1
+              fi
+            done < "$file1"
+          
+            echo "✅ $label1 and $label2 match (excluding spring.profiles.active)"
+            echo "ℹ️ Active profile in $label1: $active1"
+            echo "ℹ️ Active profile in $label2: $active2"
+          }
+
+          - name: Run Config Change Detector
+            run: ./config_changes.sh
